@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interface_ttgo/data/datasources/esp32_api.dart';
 import 'package:interface_ttgo/data/datasources/mockesp32_api.dart';
 
 class ModeControlCard extends StatefulWidget {
@@ -6,11 +7,8 @@ class ModeControlCard extends StatefulWidget {
   final String title;
   final bool hasThreshold;
 
-  const ModeControlCard({
-    required this.mode,
-    required this.title,
-    required this.hasThreshold,
-  });
+  const ModeControlCard({required this.mode, required this.title, required this.hasThreshold});
+
 
   @override
   _ModeControlCardState createState() => _ModeControlCardState();
@@ -18,15 +16,22 @@ class ModeControlCard extends StatefulWidget {
 
 class _ModeControlCardState extends State<ModeControlCard> {
   bool _isOn = false;
-  double _threshold = 0.0;
-  final MockESP32Api _api = MockESP32Api(); // Mocked
+  double _threshold = 0.1;
+  final ESP32Api _api = ESP32Api();
 
   Future<void> _toggleMode(bool value) async {
-    final success = await _api.setMode(widget.mode, value, _threshold);
-    if (success) {
-      setState(() {
-        _isOn = value;
-      });
+    try {
+      final success = await _api.setMode(widget.mode, value, _threshold);
+      if (success) {
+        setState(() {
+          _isOn = value;
+        });
+      }
+    } catch (e) {
+      print('Error toggling mode: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to set mode: $e')),
+      );
     }
   }
 

@@ -1,74 +1,108 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/datasources/firebase_datasource.dart';
 import '../../data/entities/sensor_data.dart';
-import '../bloc/statistics_bloc.dart';
+import '../../data/datasources/mockesp32_api.dart';
 
-class StatisticsPage extends StatelessWidget {
+class StatisticsPage extends StatefulWidget {
+  @override
+  _StatisticsPageState createState() => _StatisticsPageState();
+}
+
+class _StatisticsPageState extends State<StatisticsPage> {
+  String _selectedGrouping = 'minute';
+
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => StatisticsBloc(FirebaseDataSource()),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Statistiques'),
-          actions: [
-            PopupMenuButton<TimeRange>(
-              onSelected: (TimeRange result) {
-                context.read<StatisticsBloc>().add(LoadStatistics(result));
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<TimeRange>>[
-                PopupMenuItem<TimeRange>(
-                  value: TimeRange.hour,
-                  child: Text('Dernière heure'),
-                ),
-                PopupMenuItem<TimeRange>(
-                  value: TimeRange.day,
-                  child: Text('Dernier jour'),
-                ),
-                PopupMenuItem<TimeRange>(
-                  value: TimeRange.week,
-                  child: Text('Dernière semaine'),
-                ),
-                PopupMenuItem<TimeRange>(
-                  value: TimeRange.month,
-                  child: Text('Dernier mois'),
-                ),
-              ],
-            ),
-          ],
-        ),
-        body: BlocBuilder<StatisticsBloc, StatisticsState>(
-          builder: (context, state) {
-            if (state is StatisticsLoading) {
-              return Center(child: CircularProgressIndicator());
-            } else if (state is StatisticsLoaded) {
-              return SingleChildScrollView(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildTemperatureChart(state.data),
-                    SizedBox(height: 24),
-                    _buildLightChart(state.data),
-                  ],
-                ),
-              );
-            } else if (state is StatisticsError) {
-              return Center(
-                child: Text('Erreur: ${state.message}'),
-              );
-            }
-            return Center(
-              child: Text('Sélectionnez une période'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Statistiques'),
+        actions: [
+          DropdownButton<String>(
+            value: _selectedGrouping,
+            items: [
+              DropdownMenuItem(value: 'minute', child: Text('Par minute')),
+              DropdownMenuItem(value: 'hour', child: Text('Par heure')),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedGrouping = value!;
+              });
+            },
+          ),
+        ],
+      ),
+      body: FutureBuilder<List<SensorData>>(
+        future: getDatas(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erreur: ${snapshot.error}'));
+          } else {
+            final data = _groupData(snapshot.data!);
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildTemperatureChart(data),
+                  SizedBox(height: 24),
+                  _buildLightChart(data),
+                ],
+              ),
             );
-          },
-        ),
+          }
+        },
       ),
     );
+  }
+
+  Future<List<SensorData>> getDatas() async {
+  print('Fetching data from Firebase');
+  List<SensorData> data = [];
+  DateTime now = DateTime.now();
+
+  // Fetch data from Firebase for the last 30 days
+  final fetchedData = await FirebaseDataSource().getSensorDataInRange(now.subtract(Duration(days: 30)), now);
+
+  // Process the fetched data
+  for (var entry in fetchedData) {
+    data.add(SensorData(
+      temperature: entry.temperature,
+      light: entry.light,
+      timestamp: entry.timestamp,
+    ));
+  }
+
+  print('Fetched ${data.length} entries from Firebase');
+  return data;
+}
+
+  List<SensorData> _groupData(List<SensorData> data) {
+    if (_selectedGrouping == 'minute') {
+      return data.take(50).toList();
+    } else {
+      Map<int, List<SensorData>> groupedData = {};
+      for (var entry in data) {
+        int hour = entry.timestamp.hour;
+        if (!groupedData.containsKey(hour)) {
+          groupedData[hour] = [];
+        }
+        groupedData[hour]!.add(entry);
+      }
+      return groupedData.entries.map((entry) {
+        double avgTemp = entry.value.map((e) => e.temperature).reduce((a, b) => a + b) / entry.value.length;
+        double avgLight = entry.value.map((e) => e.light).reduce((a, b) => a + b) / entry.value.length;
+        return SensorData(
+          temperature: avgTemp,
+          light: avgLight,
+          timestamp: DateTime(entry.value.first.timestamp.year, entry.value.first.timestamp.month, entry.value.first.timestamp.day, entry.key),
+        );
+      }).toList();
+    }
   }
 
   Widget _buildTemperatureChart(List<SensorData> data) {
@@ -102,7 +136,7 @@ class StatisticsPage extends StatelessWidget {
                           getTitlesWidget: (value, meta) {
                             if (value.toInt() >= 0 && value.toInt() < data.length) {
                               return Text(
-                                DateFormat('HH:mm').format(data[value.toInt()].timestamp),
+                                DateFormat(_selectedGrouping == 'minute' ? 'HH:mm' : 'HH').format(data[value.toInt()].timestamp),
                                 style: TextStyle(fontSize: 10),
                               );
                             }
@@ -164,7 +198,7 @@ class StatisticsPage extends StatelessWidget {
                           getTitlesWidget: (value, meta) {
                             if (value.toInt() >= 0 && value.toInt() < data.length) {
                               return Text(
-                                DateFormat('HH:mm').format(data[value.toInt()].timestamp),
+                                DateFormat(_selectedGrouping == 'minute' ? 'HH:mm' : 'HH').format(data[value.toInt()].timestamp),
                                 style: TextStyle(fontSize: 10),
                               );
                             }

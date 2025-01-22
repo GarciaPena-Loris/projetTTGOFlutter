@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import '../../data/datasources/esp32_api.dart';
 import '../../data/datasources/mockesp32_api.dart';
 
 abstract class MusicEvent {}
@@ -32,7 +33,7 @@ class AlarmSet extends MusicState {
 }
 
 class MusicBloc extends Bloc<MusicEvent, MusicState> {
-  final MockESP32Api _api = MockESP32Api();
+  final ESP32Api _api = ESP32Api();
 
   MusicBloc() : super(MusicInitial()) {
     on<PlayMelody>((event, emit) async {

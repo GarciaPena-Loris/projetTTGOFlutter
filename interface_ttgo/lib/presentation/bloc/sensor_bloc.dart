@@ -34,7 +34,7 @@ class SensorError extends SensorState {
 }
 
 class SensorBloc extends Bloc<SensorEvent, SensorState> {
-  final MockESP32Api _esp32Api; // Mocked
+  final ESP32Api _esp32Api;
   final FirebaseDataSource _firebaseDataSource;
   VisualizationType _currentVisualization = VisualizationType.text;
 

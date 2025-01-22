@@ -53,9 +53,9 @@ class SensorDataView extends StatelessWidget {
 
   Widget _buildCard(
       {required String emoji,
-      required String label,
-      required String value,
-      required Color color}) {
+        required String label,
+        required String value,
+        required Color color}) {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -69,13 +69,13 @@ class SensorDataView extends StatelessWidget {
             Text(
               '$emoji $label:',
               style:
-                  TextStyle(fontSize: 20, color: Colors.black), // Texte en noir
+              TextStyle(fontSize: 20, color: Colors.black), // Texte en noir
             ),
             SizedBox(width: 8), // Espacement entre le label et la valeur
             Text(
               value,
               style:
-                  TextStyle(fontSize: 20, color: color), // Couleur de la valeur
+              TextStyle(fontSize: 20, color: color), // Couleur de la valeur
             ),
           ],
         ),

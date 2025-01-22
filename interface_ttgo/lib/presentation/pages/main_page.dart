@@ -7,6 +7,7 @@ import 'package:interface_ttgo/presentation/bloc/music_bloc.dart';
 import 'package:interface_ttgo/data/datasources/firebase_datasource.dart';
 import 'package:interface_ttgo/presentation/pages/statistics_page.dart';
 
+import '../../data/datasources/esp32_api.dart';
 import 'control_page.dart';
 import 'music_page.dart';
 
@@ -31,7 +32,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => SensorBloc(MockESP32Api(), FirebaseDataSource()), // Mocked
+      create: (context) => SensorBloc(ESP32Api(), FirebaseDataSource()),
       child: Scaffold(
         body: _pages[_currentIndex],
         bottomNavigationBar: BottomNavigationBar(

@@ -25,7 +25,9 @@ class MelodySelector extends StatelessWidget {
               trailing: IconButton(
                 icon: Icon(Icons.play_arrow),
                 onPressed: () {
-                  context.read<MusicBloc>().add(PlayMelody(i + 1, MelodyConstants.melodies[i]));
+                  context
+                      .read<MusicBloc>()
+                      .add(PlayMelody(i + 1, MelodyConstants.melodies[i]));
                 },
               ),
             ),

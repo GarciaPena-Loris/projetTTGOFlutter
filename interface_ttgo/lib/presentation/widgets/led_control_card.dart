@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:interface_ttgo/data/datasources/mockesp32_api.dart';
 
+import '../../data/datasources/esp32_api.dart';
+
 class LEDControlCard extends StatefulWidget {
   final String led;
 
@@ -12,7 +14,7 @@ class LEDControlCard extends StatefulWidget {
 
 class _LEDControlCardState extends State<LEDControlCard> {
   bool _isOn = false;
-  final MockESP32Api _api = MockESP32Api(); // Mocked
+  final ESP32Api _api = ESP32Api();
 
   @override
   void initState() {

@@ -1,11 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:interface_ttgo/presentation/pages/main_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'data/datasources/firebase_options.dart';
-import 'presentation/bloc/statistics_bloc.dart';
 import 'data/datasources/firebase_datasource.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

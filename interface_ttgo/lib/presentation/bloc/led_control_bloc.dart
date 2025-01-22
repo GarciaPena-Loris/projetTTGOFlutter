@@ -32,7 +32,7 @@ class SetMode extends LedControlEvent {
 }
 
 class LedControlBloc extends Bloc<LedControlEvent, LedControlState> {
-  final MockESP32Api _esp32Api; // Mocked
+  final ESP32Api _esp32Api;
 
   LedControlBloc(this._esp32Api) : super(LedControlInitial()) {
     on<SetLedState>(_onSetLedState);
